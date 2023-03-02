@@ -1,0 +1,6 @@
+configs/chatbot.js
+configs/config.json
+configs/moderation.js
+.env
+node_modules
+package-lock.json

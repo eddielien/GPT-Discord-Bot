@@ -6,6 +6,7 @@
     OpenAI Version: 3.1.0
 */
 
+require('dotenv').config();
 const Discord = require('discord.js');
 const chalk = require('chalk');
 const fs = require('node:fs');
@@ -67,4 +68,4 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
 });
 
 // Discord Client login
-client.login(config.Token);
+client.login(process.env.Token);

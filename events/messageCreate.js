@@ -1,3 +1,4 @@
+require('dotenv').config();
 const Discord = require('discord.js');
 const openAI = require('openai');
 const chalk = require('chalk');
@@ -22,7 +23,7 @@ module.exports = async (client, message) => {
 
         if (logChannel?.permissionsFor(message.guild.members.me).has("ViewChannel", "SendMessages", "EmbedLinks")) {
 
-            const configuration = new openAI.Configuration({ apiKey: config.OpenAIapiKey });
+            const configuration = new openAI.Configuration({ apiKey: process.env.OpenAIapiKey });
             const openai = new openAI.OpenAIApi(configuration);
 
             openai.createModeration({
@@ -258,7 +259,7 @@ module.exports = async (client, message) => {
 
         await message.channel.sendTyping();
 
-        const configuration = new openAI.Configuration({ apiKey: config.OpenAIapiKey });
+        const configuration = new openAI.Configuration({ apiKey: process.env.OpenAIapiKey });
         const openai = new openAI.OpenAIApi(configuration);
 
         const question = message.content;

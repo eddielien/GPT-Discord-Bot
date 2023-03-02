@@ -1,3 +1,4 @@
+require('dotenv').config();
 const Discord = require('discord.js');
 const openAI = require('openai');
 const chalk = require('chalk');
@@ -27,7 +28,7 @@ module.exports = {
 
         } else {
 
-            const configuration = new openAI.Configuration({ apiKey: config.OpenAIapiKey });
+            const configuration = new openAI.Configuration({ apiKey: process.env.OpenAIapiKey });
             const openai = new openAI.OpenAIApi(configuration);
 
             const question = args.join(" ");

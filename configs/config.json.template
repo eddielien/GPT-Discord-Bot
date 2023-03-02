@@ -1,0 +1,5 @@
+{
+    "Prefix": "Put anything you want as bot's prefix.",
+    "MainColor": "Put a #HexCode for embeds' color.",
+    "ErrorColor": "Put a #HexCode for embeds that'll be sent when there is an error."
+}

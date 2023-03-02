@@ -1,3 +1,4 @@
+require('dotenv').config();
 const Discord = require('discord.js');
 const openAI = require('openai');
 const chalk = require('chalk');
@@ -37,7 +38,7 @@ module.exports = {
         const ephemeral = ephemeralChoice === 'Enable' ? true : false;
         await interaction.deferReply({ ephemeral: ephemeral });
 
-        const configuration = new openAI.Configuration({ apiKey: config.OpenAIapiKey });
+        const configuration = new openAI.Configuration({ apiKey: process.env.OpenAIapiKey });
         const openai = new openAI.OpenAIApi(configuration);
 
         const question = interaction.options.getString("prompt");

@@ -15,20 +15,24 @@ GPT Discord Bot is the original Discord AI bot written in **[JavaScript](https:/
 3. **[Node.js 16.9.0](https://nodejs.org/en/download/)** or higher
 # 🚀 Getting Started
 ## ⚙️ Configuration
-Go to `config.json` in `configs` folder and fill out the values:
+Copy `config.json.template` in `configs` folder to `config.json` and fill out the values:
 ```json
 {
     "Prefix": "Put anything you want as prefix",
     "MainColor": "Put any #HexCode you want for embeds color",
     "ErrorColor": "Put any #HexCode you want for embeds color when there is an error",
-    "ClientID": "Put your Bot ID/Client ID here",
-    "Token": "Put your Bot Token here",
-    "OpenAIapiKey": "Put your Open AI API Key here"
 }
+```
+
+Go to `.env` in project root folder and fill out the values:
+```
+ClientID="Put your Bot ID/Client ID here"
+Token="Put your Bot Token here"
+OpenAIapiKey="Put your Open AI API Key here"
 ```
 ⚠️ **Note: Never commit or share your token publicly** ⚠️
 
-and if you want to use chatbot or moderation model fill and config `chatbot.js` and `moderation.js` in `configs` folder and (Information on how to configure them is available in the files themselves)
+and if you want to use chatbot or moderation model fill and config `chatbot.js` and `moderation.js` in `configs` folder, you can find template files in the same folder,  and (Information on how to configure them is available in the files themselves)
 ## 🧠 installation
 Open your terminal and install required packages with
 ```sh
