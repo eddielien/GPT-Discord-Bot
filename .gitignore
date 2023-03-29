@@ -3,4 +3,6 @@ configs/config.json
 configs/moderation.js
 .env
 node_modules
+trainingData
 package-lock.json
+serverless.yml
