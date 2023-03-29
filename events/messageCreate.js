@@ -5,7 +5,6 @@ const chalk = require('chalk');
 const ms = require('ms');
 const fs = require('node:fs');
 const func = require('../utils/functions');
-const tokenizer = require('../utils/encoder/encoder');
 const settings = require('../utils/settings');
 const config = require('../configs/config.json');
 const { moderation } = require('../configs/moderation');
@@ -139,7 +138,6 @@ module.exports = async (client, message) => {
                             name: message.author.tag,
                             iconURL: message.author.displayAvatarURL()
                         })
-                        // .setDescription(message.content)
                         .setDescription(`||${message.content}||`)
                         .setFields(
                             {
@@ -270,57 +268,56 @@ module.exports = async (client, message) => {
         }).then(async (response) => {
 
             const data = response.data.results[0];
-            if (data.flagged) return await message.reply({ content: `Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}` });
+            if (data.flagged) await message.reply({ content: `Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}` });
             else {
 
-                let oldConversation, prompt;
+                const chatGPTprompt = fs.readFileSync("./utils/prompts/chatCompletion.txt", "utf-8");
+                const prompt = chatGPTprompt.replaceAll('{botUsername}', client.user.username);
 
-                const chatGPTprompt = fs.readFileSync("./utils/prompts/chatGPT.txt", "utf-8")
-                    .replaceAll('{botUsername}', client.user.username)
-                    .replaceAll('{userUsername}', message.author.username)
-                    .replaceAll('{question}', question);
+                let messages = [{
+                    "role": "system",
+                    "content": prompt
+                }];
 
-                if (conversations.has(message.author.id)) oldConversation = conversations.get(message.author.id);
+                console.log(func.tokenizer('chatgpt', messages).tokens);
 
-                function mapping(array) {
-                    return array.map((string, index) => {
-                        if (index % 2 === 0) return `- ${message.author.username}:${string}`;
-                        else return `- ${client.user.username}:${string}`;
-                    }).join('\n');
-                };
+                let oldMessages;
+                if (conversations.has(message.author.id)) oldMessages = conversations.get(message.author.id);
+                if (oldMessages) {
 
-                if (oldConversation) prompt = `${chatGPTprompt}\n\nMessages:\n${mapping(oldConversation)}\n- ${message.author.username}: ${question}\n- ${client.user.username}:`;
-                else prompt = `${chatGPTprompt}\n\nMessages:\n- ${message.author.username}: ${question}\n- ${client.user.username}:`;
+                    while (func.tokenizer('chatgpt', oldMessages).tokens >= 512) {
 
-                let encoded = tokenizer.encode(prompt);
-                let maxTokens = 4096 - encoded.length;
+                        let sliceLength = oldMessages.length * -0.5
+                        if (sliceLength % 2 !== 0) sliceLength--
+                        oldMessages = oldMessages.slice(sliceLength)
+                        conversations.set(message.author.id, oldMessages);
 
-                while (maxTokens <= 0) {
+                    };
 
-                    const oldConversationData = conversations.get(message.author.id);
-                    let sliceLength = oldConversationData.length * -0.5
-                    if (sliceLength % 2 !== 0) sliceLength--
-                    const slicedConversationDataArray = oldConversationData.slice(sliceLength)
-                    conversations.set(message.author.id, slicedConversationDataArray);
-                    prompt = `${chatGPTprompt}\n\nMessages:\n${mapping(slicedConversationDataArray)}\n- ${message.author.username}: ${question}\n- ${client.user.username}:`;
-                    encoded = tokenizer.encode(prompt);
-                    maxTokens = 4096 - encoded.length;
+                    messages = messages.concat(oldMessages);
 
                 };
 
-                openai.createCompletion({
+                messages.push({
+                    "role": "user",
+                    "content": question
+                });
 
-                    model: settings.chatGPT.model,
-                    prompt: prompt,
-                    max_tokens: maxTokens,
-                    temperature: settings.chatGPT.temprature,
-                    top_p: settings.chatGPT.top_p,
-                    frequency_penalty: settings.chatGPT.frequency_penalty,
-                    presence_penalty: settings.chatGPT.presence_penalty
+                console.log(func.tokenizer('chatgpt', messages).tokens);
+
+                openai.createChatCompletion({
+
+                    model: 'gpt-3.5-turbo',
+                    messages: messages,
+                    max_tokens: func.tokenizer('chatgpt', messages).maxTokens,
+                    temperature: settings.completion.temprature,
+                    top_p: settings.completion.top_p,
+                    frequency_penalty: settings.completion.frequency_penalty,
+                    presence_penalty: settings.completion.presence_penalty
 
                 }).then(async (response) => {
 
-                    const answer = response.data.choices[0].text;
+                    const answer = response.data.choices[0].message.content;
 
                     openai.createModeration({
 
@@ -329,15 +326,25 @@ module.exports = async (client, message) => {
                     }).then(async (response) => {
 
                         const data = response.data.results[0];
-                        if (data.flagged) return await message.reply({ content: `Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}` });
+                        if (data.flagged) await message.reply({ content: `Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}` });
                         else {
+
+                            const newDataArray = [
+                                {
+                                    "role": "user",
+                                    "content": question
+                                },
+                                {
+                                    "role": "assistant",
+                                    "content": answer
+                                }
+                            ];
 
                             if (conversations.has(message.author.id)) {
                                 const oldConversation = conversations.get(message.author.id);
-                                const newDataArray = oldConversation.concat([question, answer]);
-                                conversations.set(message.author.id, newDataArray);
+                                conversations.set(message.author.id, oldConversation.concat(newDataArray));
                             } else {
-                                conversations.set(message.author.id, [question, answer]);
+                                conversations.set(message.author.id, newDataArray);
                             };
 
                             if (answer.length <= 2000) await message.reply({ content: answer });

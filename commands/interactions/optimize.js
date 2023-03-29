@@ -4,7 +4,6 @@ const openAI = require('openai');
 const chalk = require('chalk');
 const fs = require('node:fs');
 const func = require('../../utils/functions');
-const tokenizer = require('../../utils/encoder/encoder');
 const settings = require('../../utils/settings');
 const config = require('../../configs/config.json');
 
@@ -52,7 +51,7 @@ module.exports = {
             const data = response.data.results[0];
             if (data.flagged) {
 
-                const logEmbed = new Discord.EmbedBuilder()
+                const embed = new Discord.EmbedBuilder()
                     .setColor(config.ErrorColor)
                     .setAuthor({
                         name: question.length > 256 ? question.substring(0, 253) + "..." : question,
@@ -60,20 +59,23 @@ module.exports = {
                     })
                     .setDescription(`Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}`);
 
-                await interaction.editReply({ embeds: [logEmbed] });
+                await interaction.editReply({ embeds: [embed] });
 
             } else {
 
                 const optimizerPrompt = fs.readFileSync("./utils/prompts/optimizer.txt", "utf-8");
                 const prompt = optimizerPrompt + question + ".";
-                const encoded = tokenizer.encode(prompt);
-                const maxTokens = 4096 - encoded.length;
 
-                openai.createCompletion({
+                const messages = [{
+                    "role": 'user',
+                    "content": prompt
+                }];
 
-                    model: settings.optimzer.model,
-                    prompt: prompt,
-                    max_tokens: maxTokens,
+                openai.createChatCompletion({
+
+                    model: 'gpt-3.5-turbo',
+                    messages: messages,
+                    max_tokens: func.tokenizer('chatgpt', messages).maxTokens,
                     temperature: settings.optimzer.temprature,
                     top_p: settings.optimzer.top_p,
                     frequency_penalty: settings.optimzer.frequency_penalty,
@@ -81,7 +83,7 @@ module.exports = {
 
                 }).then(async (response) => {
 
-                    const answer = response.data.choices[0].text
+                    const answer = response.data.choices[0].message.content
                         .replace("Optimized Prompt:", "")
                         .replace("Optimized prompt:", "")
                         .replace("Optimized Output:", "")
@@ -112,7 +114,7 @@ module.exports = {
                                     iconURL: client.user.displayAvatarURL()
                                 });
 
-                            return interaction.editReply({ embeds: [embed] });
+                            await interaction.editReply({ embeds: [embed] });
 
                         } else {
 
