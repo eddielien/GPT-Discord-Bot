@@ -4,7 +4,6 @@ const openAI = require('openai');
 const chalk = require('chalk');
 const fs = require('node:fs');
 const func = require('../../utils/functions');
-const tokenizer = require('../../utils/encoder/encoder');
 const settings = require('../../utils/settings');
 const config = require('../../configs/config.json');
 
@@ -43,7 +42,7 @@ module.exports = {
                 const data = response.data.results[0];
                 if (data.flagged) {
 
-                    const logEmbed = new Discord.EmbedBuilder()
+                    const embed = new Discord.EmbedBuilder()
                         .setColor(config.ErrorColor)
                         .setAuthor({
                             name: question.length > 256 ? question.substring(0, 253) + "..." : question,
@@ -51,25 +50,30 @@ module.exports = {
                         })
                         .setDescription(`Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowd by our safety system\n\n**Flags:** ${func.flagCheck(data.categories).trueFlags}`);
 
-                    await message.reply({ embeds: [logEmbed] });
+                    await message.reply({ embeds: [embed] });
 
                 } else {
 
                     const language = 'English';
-                    const translatorPrompt = fs.readFileSync("./utils/prompts/translator.txt", "utf-8");
-                    const prompt = translatorPrompt
-                        .replaceAll('{botUsername}', client.user.username)
-                        .replaceAll('{userUsername}', message.author.username)
-                        .replaceAll('{language}', language)
-                        .replaceAll('{question}', question);
-                    const encoded = tokenizer.encode(prompt);
-                    const maxTokens = 4096 - encoded.length;
+                    const translatorPrompt = fs.readFileSync("./utils/prompts/translator.txt", "utf-8")
+                    const prompt = translatorPrompt.replaceAll('{language}', language);
 
-                    openai.createCompletion({
+                    const messages = [
+                        {
+                            "role": "system",
+                            "content": prompt
+                        },
+                        {
+                            "role": 'user',
+                            "content": question
+                        }
+                    ];
 
-                        model: settings.translator.model,
-                        prompt: prompt,
-                        max_tokens: maxTokens,
+                    openai.createChatCompletion({
+
+                        model: 'gpt-3.5-turbo',
+                        messages: messages,
+                        max_tokens: func.tokenizer('chatgpt', messages).maxTokens,
                         temperature: settings.translator.temprature,
                         top_p: settings.translator.top_p,
                         frequency_penalty: settings.translator.frequency_penalty,
@@ -77,10 +81,10 @@ module.exports = {
 
                     }).then(async (response) => {
 
-                        const answer = response.data.choices[0].text;
+                        const answer = response.data.choices[0].message.content;
                         const usage = response.data.usage;
 
-                        if (answer.length < 4096) {
+                        if (answer.length <= 4096) {
 
                             const embed = new Discord.EmbedBuilder()
                                 .setColor(config.MainColor)
@@ -90,7 +94,7 @@ module.exports = {
                                 })
                                 .setDescription(answer)
                                 .setFooter({
-                                    text: `Costs ${func.pricing('davinci', usage.total_tokens)}`,
+                                    text: `Costs ${func.pricing('chatgpt', usage.total_tokens)}`,
                                     iconURL: client.user.displayAvatarURL()
                                 });
 
