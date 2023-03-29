@@ -10,7 +10,6 @@ require('dotenv').config();
 const Discord = require('discord.js');
 const chalk = require('chalk');
 const fs = require('node:fs');
-const config = require('./configs/config.json');
 
 // Discord Client Constructor
 const client = new Discord.Client({
