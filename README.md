@@ -29,6 +29,13 @@ Go to `.env` in project root folder and fill out the values:
 ClientID="Put your Bot ID/Client ID here"
 Token="Put your Bot Token here"
 OpenAIapiKey="Put your Open AI API Key here"
+#
+# models
+chatgptModel="gpt-4"
+davinciModel="text-davinci-003"
+curieModel="text-curie-001"
+babbageModel="text-babbage-001"
+adaModel="text-ada-001"
 ```
 ⚠️ **Note: Never commit or share your token publicly** ⚠️
 

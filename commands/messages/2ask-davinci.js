@@ -61,7 +61,7 @@ module.exports = {
 
                     openai.createCompletion({
 
-                        model: 'text-davinci-003',
+                        model: process.env.davinciModel,
                         prompt: prompt,
                         max_tokens: func.tokenizer('davinci', prompt).maxTokens,
                         temperature: settings.completion.temprature,

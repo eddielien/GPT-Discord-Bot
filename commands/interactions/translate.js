@@ -85,7 +85,7 @@ module.exports = {
 
                 openai.createChatCompletion({
 
-                    model: 'gpt-3.5-turbo',
+                    model: process.env.chatgptModel,
                     messages: messages,
                     max_tokens: func.tokenizer('chatgpt', messages).maxTokens,
                     temperature: settings.translator.temprature,

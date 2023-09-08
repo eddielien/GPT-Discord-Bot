@@ -60,7 +60,7 @@ module.exports = {
 
                     openai.createCompletion({
 
-                        model: 'text-curie-001',
+                        model: process.env.curieModel,
                         prompt: prompt,
                         max_tokens: func.tokenizer('curie', prompt).maxTokens,
                         temperature: settings.completion.temprature,

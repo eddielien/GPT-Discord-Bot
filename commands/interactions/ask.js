@@ -118,11 +118,11 @@ module.exports = {
 
             const model = interaction.options.getString('model') || 'chatgpt';
             const modelNames = {
-                'chatgpt': 'gpt-3.5-turbo',
-                'davinci': 'text-davinci-003',
-                'curie': 'text-curie-001',
-                'babbage': 'text-babbage-001',
-                'ada': 'text-ada-001'
+                'chatgpt': process.env.chatgptModel,
+                'davinci': process.env.davinciModel,
+                'curie': process.env.curieModel,
+                'babbage': process.env.babbageModel,
+                'ada': process.env.adaModel
             };
 
             const chatGPTprompt = fs.readFileSync(`./utils/prompts/${model === 'chatgpt' ? 'chatCompletion' : 'completion'}.txt`, "utf-8");

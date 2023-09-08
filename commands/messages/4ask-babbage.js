@@ -60,7 +60,7 @@ module.exports = {
 
                     openai.createCompletion({
 
-                        model: 'text-babbage-001',
+                        model: process.env.babbageModel,
                         prompt: prompt,
                         max_tokens: func.tokenizer('babbage', prompt).maxTokens,
                         temperature: settings.completion.temprature,

@@ -1,9 +1,9 @@
 const { encoding_for_model, get_encoding } = require('@dqbd/tiktoken');
 const encoderGPT3_5 = get_encoding('cl100k_base');
-const encoderDavinci = encoding_for_model('text-davinci-003');
-const encoderCurie = encoding_for_model('text-curie-001');
-const encoderBabbage = encoding_for_model('text-babbage-001');
-const encoderAda = encoding_for_model('text-ada-001');
+const encoderDavinci = encoding_for_model(process.env.davinciModel);
+const encoderCurie = encoding_for_model(process.env.curieModel);
+const encoderBabbage = encoding_for_model(process.env.babbageModel);
+const encoderAda = encoding_for_model(process.env.adaModel);
 
 module.exports = {
 

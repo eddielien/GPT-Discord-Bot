@@ -60,7 +60,7 @@ module.exports = {
 
                     openai.createCompletion({
 
-                        model: 'text-ada-001',
+                        model: process.env.adaModel,
                         prompt: prompt,
                         max_tokens: func.tokenizer('ada', prompt).maxTokens,
                         temperature: settings.completion.temprature,
